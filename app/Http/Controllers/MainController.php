@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Carbon\CarbonTimeZone;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Google\Client as Google_Client;
 use Google\Exception as Google_Exception;
 use Google\Service\YouTube as Google_Service_YouTube;
 use Google\Service\Exception as Google_Service_Exception;
+use alchemyguy\YoutubeLaravelApi\AuthenticateService;
+use alchemyguy\YoutubeLaravelApi\LiveStreamService;
+use alchemyguy\YoutubeLaravelApi\VideoService;
 use Exception;
 use Throwable;
 
@@ -95,5 +100,78 @@ class MainController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function auth() {
+        $authObject  = new AuthenticateService;
+
+        # Replace the identifier with a unqiue identifier for account or channel
+        $authUrl = $authObject->getLoginUrl('email','identifier'); 
+
+    }
+
+    public function startStreaming(Request $request, $title, $desc)
+    {
+        $tz = CarbonTimeZone::instance('America/Asuncion');
+        $dt = Carbon::now();
+        $dt->addMinute();
+        $datetime = $dt->toDateTimeString();
+        $timezone = $tz->toOffsetName($dt);
+
+        $ytEventObj = new LiveStreamService();
+
+        // Get the token from the request.
+        $token = $request->header('Authorization');
+
+        $data = array(
+            "title" => $title,
+            "description" => $desc,
+            "thumbnail_path" => "",				// Optional
+            "event_start_date_time" => $datetime,
+            "event_end_date_time" => "",			// Optional
+            "time_zone" => $timezone,
+            'privacy_status' => "",				// default: "public" OR "private"
+            "language_name" => "",				// default: "English"
+            "tag_array" => ""				// Optional and should not be more than 500 characters
+        );
+
+        // Create a new YouTube live broadcast.
+        $response = $ytEventObj->broadcast($token, $data);
+
+        if ( !empty($response) ) {
+
+            $youtubeEventId = $response['broadcast_response']['id'];
+            $serverUrl = $response['stream_response']['cdn']->ingestionInfo->ingestionAddress;
+            $serverKey = $response['stream_response']['cdn']->ingestionInfo->streamName;
+
+            return response()->json([
+                'url' => $serverUrl,
+            ]);
+
+        } else {
+        
+            // Return the live stream URL.
+            return response()->json([
+                'url' => '',
+            ]);
+        }
+    }
+
+    public function endStreaming(Request $request, $title, $desc)
+    {
+        $youtubeLiveStreamService = new LiveStreamService();
+
+        // Get the token from the request.
+        $token = $request->header('Authorization');
+
+        // Stop the live stream.
+        $youtubeLiveStreamService->broadcast($token, [
+            'status' => 'complete',
+        ]);
+
+        // Return a success message.
+        return response()->json([
+            'message' => 'Live stream ended successfully.',
+        ]);
     }
 }
