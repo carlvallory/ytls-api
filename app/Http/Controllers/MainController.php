@@ -118,6 +118,8 @@ class MainController extends Controller
 
         $refreshToken = Storage::get(base64_decode('refresh_token.txt')) ?? base64_decode(config("google.auth.refresh_token"));
 
+        $token = false;
+
         if(!$refreshToken) {
             if ($code) {
                 $client->authenticate($code);
