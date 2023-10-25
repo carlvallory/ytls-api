@@ -166,6 +166,8 @@ class MainController extends Controller
         // Get the token from the request.
         $token = $this->getToken();
 
+        Log::debug($token);
+
         $data = array(
             "title" => $title,
             "description" => $desc,
