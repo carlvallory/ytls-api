@@ -21,3 +21,5 @@ Route::get('/auth/google/youtube/callback', [MainController::class, 'update']);
 
 Route::post('/livestream/start/title/{title}/description/{desc}', 'LivestreamController@start');
 Route::post('/livestream/stop/title/{title}/description/{desc}', 'LivestreamController@end');
+Route::get('/livestream/start/title/{title}/description/{desc}', 'LivestreamController@start');
+Route::get('/livestream/stop/title/{title}/description/{desc}', 'LivestreamController@end');
