@@ -102,6 +102,47 @@ class MainController extends Controller
         //
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
+    private function getToken($code = null)
+    {
+        $client = new Google_Client();
+        $client->setClientId(config('google.auth.client_id'));
+        $client->setClientSecret(config('google.auth.client_secret'));
+        $client->setRedirectUri(config('google.auth.redirect_url'));
+        $client->setScopes(Google_Service_YouTube::YOUTUBE_FORCE_SSL);  
+        //Refresh Token
+        $client->setAccessType('offline');
+        $client->setApprovalPrompt('force'); // Using "consent" ensures that your application always receives a refresh token.
+
+        $refreshToken = Storage::get(base64_decode('refresh_token.txt')) ?? base64_decode(config("google.auth.refresh_token"));
+
+        if(!$refreshToken) {
+            if ($code) {
+                $client->authenticate($code);
+                $token = $client->getAccessToken();
+                if($token) {
+                    if(array_key_exists('refresh_token', $token)) {
+                        Storage::put(base64_encode('refresh_token.txt'), $token['refresh_token']);
+                    }
+                }
+                Log::info("Code received");
+            } else {
+                Log::warning("Something went wrong");
+            }
+        } else {
+            $client->fetchAccessTokenWithRefreshToken($refreshToken);
+            Log::info("Already have a Refresh Token");
+        }
+
+        if($token) {
+            return $token;
+        }
+
+        return false;
+    }
+
     public function auth() {
         $authObject  = new AuthenticateService;
 
@@ -121,7 +162,7 @@ class MainController extends Controller
         $ytEventObj = new LiveStreamService();
 
         // Get the token from the request.
-        $token = $request->header('Authorization');
+        $token = $this->getToken();
 
         $data = array(
             "title" => $title,
@@ -136,24 +177,32 @@ class MainController extends Controller
         );
 
         // Create a new YouTube live broadcast.
-        $response = $ytEventObj->broadcast($token, $data);
+        $event = $ytEventObj->broadcast($token, $data);
 
-        if ( !empty($response) ) {
+        if ( !empty($event) ) {
 
-            $youtubeEventId = $response['broadcast_response']['id'];
-            $serverUrl = $response['stream_response']['cdn']->ingestionInfo->ingestionAddress;
-            $serverKey = $response['stream_response']['cdn']->ingestionInfo->streamName;
+            $youtubeEventId = $event['broadcast_response']['id'];
+            $serverUrl      = $event['stream_response']['cdn']->ingestionInfo->ingestionAddress;
+            $serverKey      = $event['stream_response']['cdn']->ingestionInfo->streamName;
 
-            return response()->json([
+            $response = [ 
+                'status'    => 200, 
+                'message'   => 'Broadcast went live!',
                 'url' => $serverUrl,
-            ]);
+            ];
+
+            return response()->json($response);
 
         } else {
         
-            // Return the live stream URL.
-            return response()->json([
+            $response = [ 
+                'status'    => 500, 
+                'message'   => 'No response!',
                 'url' => '',
-            ]);
+            ];
+
+            // Return the live stream URL.
+            return response()->json($response);
         }
     }
 
