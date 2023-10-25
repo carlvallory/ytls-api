@@ -18,7 +18,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/auth/google/youtube/callback', [MainController::class, 'update']);
+Route::get('/auth/google/youtube/callback', [MainController::class, 'store']);
 
 Route::post('/livestream/start/title/{title}/description/{desc}', [MainController::class, 'startStreaming']);
 Route::post('/livestream/stop/title/{title}/description/{desc}', [MainController::class, 'endStreaming']);
