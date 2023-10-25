@@ -134,8 +134,7 @@ class MainController extends Controller
                 Log::warning("Something went wrong");
             }
         } else {
-            $client->fetchAccessTokenWithRefreshToken($refreshToken);
-            $token = $client->getAccessToken();
+            $token = $client->fetchAccessTokenWithRefreshToken($refreshToken);
             Log::info("Already have a Refresh Token");
         }
 
