@@ -135,6 +135,7 @@ class MainController extends Controller
             }
         } else {
             $client->fetchAccessTokenWithRefreshToken($refreshToken);
+            $token = $client->getAccessToken();
             Log::info("Already have a Refresh Token");
         }
 
