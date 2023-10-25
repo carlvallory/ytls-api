@@ -53,7 +53,7 @@ class MainController extends Controller
 
         if(!$refreshToken) {
             if (request()->has('code')) {
-                $client->authenticate(request()->get('code'));
+                $client->fetchAccessTokenWithAuthCode(request()->get('code'));
                 $token = $client->getAccessToken();
                 if($token) {
                     if(array_key_exists('refresh_token', $token)) {
@@ -66,13 +66,20 @@ class MainController extends Controller
             }
         } else {
             $token = $client->fetchAccessTokenWithRefreshToken($refreshToken);
+
             if($token) {
                 if(array_key_exists('refresh_token', $token)) {
                     Storage::put(base64_encode('refresh_token.txt'), $token['refresh_token']);
                 }
                 Log::debug($token);
             }
-            Log::info("Already have a Refresh Token");
+            
+            if(array_key_exists('error', $token) && $token['error'] == 'unauthorized_client') {
+                Log::warning('UnAuthorized Client');
+                $token = false;
+            } else {
+                Log::info("Already have a Refresh Token");
+            }
         }
     }
 
@@ -128,7 +135,7 @@ class MainController extends Controller
 
         if(!$refreshToken) {
             if ($code) {
-                $client->authenticate($code);
+                $client->fetchAccessTokenWithAuthCode($code);
                 $token = $client->getAccessToken();
                 if($token) {
                     if(array_key_exists('refresh_token', $token)) {
@@ -140,14 +147,21 @@ class MainController extends Controller
                 Log::warning("Something went wrong");
             }
         } else {
-            $token = $client->fetchAccessTokenWithRefreshToken($refreshToken);
+            $client->fetchAccessTokenWithRefreshToken($refreshToken);
+            $token = $client->getAccessToken();
+            if($token) {
+                if(array_key_exists('refresh_token', $token)) {
+                    Storage::put(base64_encode('refresh_token.txt'), $token['refresh_token']);
+                }
+                Log::debug($token);
 
-            if(array_key_exists('error', $token) && $token['error'] == 'unauthorized_client') {
-                Log::warning('UnAuthorized Client');
-                $token = false;
-            } else {
-                Log::info("Already have a Refresh Token");
-            }
+                if(array_key_exists('error', $token) && $token['error'] == 'unauthorized_client') {
+                    Log::warning('UnAuthorized Client');
+                    $token = false;
+                } else {
+                    Log::info("Already have a Refresh Token");
+                }
+            }   
         }
 
         return $token;
