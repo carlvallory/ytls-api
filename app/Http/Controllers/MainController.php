@@ -183,53 +183,80 @@ class MainController extends Controller
         $datetime = $dt->toDateTimeString();
         $timezone = $tz->toOffsetName($dt);
 
-        $ytEventObj = new LiveStreamService();
+        try {
 
-        // Get the token from the request.
-        $token = $this->getToken();
+            $ytEventObj = new LiveStreamService();
 
-        Log::debug($token);
+            // Get the token from the request.
+            $token = $this->getToken();
 
-        $data = array(
-            "title" => $title,
-            "description" => $desc,
-            "thumbnail_path" => "",				// Optional
-            "event_start_date_time" => $datetime,
-            "event_end_date_time" => "",			// Optional
-            "time_zone" => $timezone,
-            'privacy_status' => "",				// default: "public" OR "private"
-            "language_name" => "",				// default: "English"
-            "tag_array" => ""				// Optional and should not be more than 500 characters
-        );
+            Log::debug($token);
 
-        // Create a new YouTube live broadcast.
-        $event = $ytEventObj->broadcast($token, $data);
+            $data = array(
+                "title" => $title,
+                "description" => $desc,
+                "thumbnail_path" => "",				// Optional
+                "event_start_date_time" => $datetime,
+                "event_end_date_time" => "",			// Optional
+                "time_zone" => $timezone,
+                'privacy_status' => "",				// default: "public" OR "private"
+                "language_name" => "",				// default: "English"
+                "tag_array" => ""				// Optional and should not be more than 500 characters
+            );
 
-        if ( !empty($event) ) {
+            // Create a new YouTube live broadcast.
+            $event = $ytEventObj->broadcast($token, $data);
 
-            $youtubeEventId = $event['broadcast_response']['id'];
-            $serverUrl      = $event['stream_response']['cdn']->ingestionInfo->ingestionAddress;
-            $serverKey      = $event['stream_response']['cdn']->ingestionInfo->streamName;
+            if ( !empty($event) ) {
 
+                $youtubeEventId = $event['broadcast_response']['id'];
+                $serverUrl      = $event['stream_response']['cdn']->ingestionInfo->ingestionAddress;
+                $serverKey      = $event['stream_response']['cdn']->ingestionInfo->streamName;
+
+                $response = [ 
+                    'status'    => 200, 
+                    'message'   => 'Broadcast went live!',
+                    'url' => $serverUrl,
+                ];
+
+                return response()->json($response);
+
+            } else {
+            
+                $response = [ 
+                    'status'    => 500, 
+                    'message'   => 'No response!',
+                    'url' => '',
+                ];
+
+                // Return the live stream URL.
+                return response()->json($response);
+            }
+        } catch (Google_Service_Exception $e) {
+            Log::alert('A service error occurred: ');
+            Log::alert($e->getMessage());
+                    
             $response = [ 
-                'status'    => 200, 
-                'message'   => 'Broadcast went live!',
-                'url' => $serverUrl,
+                'status' => 500, 
+                'message' => $e->getMessage()
             ];
 
             return response()->json($response);
-
-        } else {
-        
+        } catch (Google_Exception $e) {
+            Log::alert('A service error occurred: ');
+            Log::alert($e->getMessage());
             $response = [ 
-                'status'    => 500, 
-                'message'   => 'No response!',
-                'url' => '',
+                'status' => 500, 
+                'message' => $e->getMessage()
             ];
-
-            // Return the live stream URL.
             return response()->json($response);
         }
+
+        $response = [ 
+            'status' => 404, 
+            'message' => 'Not Found'
+        ];
+        return response()->json($response);
     }
 
     public function endStreaming(Request $request, $title, $desc)
