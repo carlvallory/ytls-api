@@ -135,14 +135,16 @@ class MainController extends Controller
             }
         } else {
             $token = $client->fetchAccessTokenWithRefreshToken($refreshToken);
-            Log::info("Already have a Refresh Token");
+            
+            if(array_key_exists('error', $token) && $token['error'] == 'unauthorized_client') {
+                Log::warning('UnAuthorized Client');
+                $token = false;
+            } else {
+                Log::info("Already have a Refresh Token");
+            }
         }
 
-        if($token) {
-            return $token;
-        }
-
-        return false;
+        return $token;
     }
 
     public function auth() {
