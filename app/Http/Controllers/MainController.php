@@ -195,13 +195,12 @@ class MainController extends Controller
             $data = array(
                 "title" => $title,
                 "description" => $desc,
-                "thumbnail_path" => "",				// Optional
+                "thumbnail_path" => "",
                 "event_start_date_time" => $datetime,
-                "event_end_date_time" => "",			// Optional
+                "event_end_date_time" => "",
                 "time_zone" => $timezone,
-                'privacy_status' => "",				// default: "public" OR "private"
-                "language_name" => "",				// default: "English"
-                "tag_array" => ""				// Optional and should not be more than 500 characters
+                'privacy_status' => "public",
+                "tag_array" => ""
             );
 
             // Create a new YouTube live broadcast.
