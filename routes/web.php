@@ -30,7 +30,7 @@ Route::get('/livestream/start/title/{title}/description/{desc}', [MainController
 Route::get('/livestream/stop/title/{title}/description/{desc}', [MainController::class, 'endStreaming']);
 
 Route::get('/auth/redirect', function () {
-    return Socialite::driver('google')->redirect();
+    return Socialite::driver('google')->scopes()->with(["access_type" => "offline", "prompt" => "consent select_account"])->redirect();
 });
  
 Route::get('/auth/callback', function () {
@@ -48,6 +48,10 @@ Route::get('/auth/callback', function () {
     Auth::login($user);
  
     return redirect('/dashboard');
+});
+
+Route::get('/auth/logout', function () {
+    Auth::logout();
 });
 
 Route::get('/dashboard', function () {
