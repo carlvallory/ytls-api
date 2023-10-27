@@ -199,7 +199,7 @@ class MainController extends Controller
                 "event_end_date_time" => "",
                 "time_zone" => $timezone,
                 'privacy_status' => "public",
-                //"tag_array" => []
+                "tag_array" => ["Stream"]
             );
 
             // Create a new YouTube live broadcast.
