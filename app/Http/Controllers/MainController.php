@@ -232,6 +232,7 @@ class MainController extends Controller
                 // Return the live stream URL.
                 return response()->json($response);
             }
+            
         } catch (Google_Service_Exception $e) {
             Log::alert('A service error occurred: ');
             Log::alert($e->getMessage());
