@@ -195,7 +195,6 @@ class MainController extends Controller
             $data = array(
                 "title" => $title,
                 "description" => $desc,
-                "thumbnail_path" => "",
                 "event_start_date_time" => $datetime,
                 "event_end_date_time" => "",
                 "time_zone" => $timezone,
