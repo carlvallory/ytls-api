@@ -192,7 +192,7 @@ class MainController extends Controller
 
             Log::debug($token);
 
-            $data = array(
+            $data = [
                 "title" => $title,
                 "description" => $desc,
                 "event_start_date_time" => $datetime,
@@ -200,7 +200,9 @@ class MainController extends Controller
                 "time_zone" => $timezone,
                 'privacy_status' => "public",
                 "tag_array" => ["tag1", "tag2", "tag3"]
-            );
+            ];
+
+            Log::debug($data);
 
             // Create a new YouTube live broadcast.
             $event = $ytEventObj->broadcast($token, $data);
