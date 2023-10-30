@@ -181,7 +181,8 @@ class MainController extends Controller
         $dt = Carbon::now();
         $dt->addMinute();
         $datetime = $dt->toDateTimeString();
-        $timezone = $tz->toOffsetName($dt);
+        $offsetTimezone = $tz->toOffsetName($dt);
+        $timezone = "America/Asuncion";
 
         try {
 
