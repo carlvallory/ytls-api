@@ -201,7 +201,7 @@ class MainController extends Controller
                 "event_start_date_time" => $datetime,
                 "time_zone" => $timezone,
                 'privacy_status' => "public",
-                "tag_array" => ""
+                "tag_array" => []
             ];
 
             Log::debug($data);
