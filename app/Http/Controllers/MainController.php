@@ -193,15 +193,14 @@ class MainController extends Controller
 
             Log::debug($token);
 
-            $tags = array_map('strval', ['tag1', 'tag2', 'tag3']);
+            $tags = array_map('strval', ['radio', 'tele', 'online']);
 
             $data = [
                 "title" => $title,
                 "description" => $desc,
                 "event_start_date_time" => $datetime,
                 "time_zone" => $timezone,
-                'privacy_status' => "public",
-                "tag_array" => $tags
+                'privacy_status' => "public"
             ];
 
             Log::debug($data);
